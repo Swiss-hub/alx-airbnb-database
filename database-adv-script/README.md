@@ -43,3 +43,21 @@ WHERE property_id IN (
     HAVING AVG(rating) > 4.0
 );
 
+
+# Aggregations and Window Functions
+
+This SQL script demonstrates the use of aggregation functions (`COUNT`, `GROUP BY`) and window functions (`RANK`) to analyze booking data in the Airbnb clone database.
+
+## 📌 Queries
+
+### 1. Total Bookings by User
+
+Uses `COUNT()` and `GROUP BY` to calculate how many bookings each user made.
+
+```sql
+SELECT 
+    user_id,
+    COUNT(*) AS total_bookings
+FROM bookings
+GROUP BY user_id
+ORDER BY total_bookings DESC;
