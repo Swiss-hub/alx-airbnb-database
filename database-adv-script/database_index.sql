@@ -12,7 +12,7 @@ CREATE TABLE properties (
     host_id CHAR(36) NOT NULL,
     name TEXT NOT NULL,
     description TEXT
-    location VARCHAR(255) NOT NULL,
+   -- location VARCHAR(255) NOT NULL,
 );
 
 -- BOOKINGS TABLE
@@ -157,6 +157,8 @@ GROUP BY property_id;
 
 
 
+ALTER TABLE properties ADD COLUMN location VARCHAR(255);
+
 
 
 --database_index.sql – Create Indexes
@@ -174,3 +176,24 @@ CREATE INDEX idx_properties_location ON properties(location);
 
 -- Create composite index on bookings (start_date, end_date) for date-range filtering
 CREATE INDEX idx_bookings_date_range ON bookings(start_date, end_date);
+
+-- Create indexes on commonly queried fields
+--CREATE INDEX idx_bookings_user_id ON bookings(user_id);
+--CREATE INDEX idx_bookings_property_id ON bookings(property_id);
+--CREATE INDEX idx_users_email ON users(email);
+--CREATE INDEX idx_bookings_dates ON bookings(start_date, end_date);
+
+-- Use EXPLAIN ANALYZE to measure performance of typical queries
+
+EXPLAIN ANALYZE
+SELECT * FROM bookings
+WHERE user_id = 'u1';  -- Replace 'u1' with a real user_id from your data
+
+EXPLAIN ANALYZE
+SELECT * FROM bookings
+WHERE property_id = 'p1';  -- Replace 'p1' with a real property_id
+
+EXPLAIN ANALYZE
+SELECT * FROM users
+WHERE email = 'johndoe@example.com';  -- Replace with existing email
+
