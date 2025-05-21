@@ -67,7 +67,8 @@ SELECT
     bookings.start_date,
     bookings.end_date
 FROM bookings
-INNER JOIN users ON bookings.user_id = users.user_id;
+INNER JOIN users ON bookings.user_id = users.user_id
+ORDER BY bookings.start_date;
 
 -- 2. LEFT JOIN: All properties and their reviews, including those with no reviews
 SELECT
@@ -77,9 +78,10 @@ SELECT
     reviews.rating,
     reviews.comment
 FROM properties
-LEFT JOIN reviews ON properties.property_id = reviews.property_id;
+LEFT JOIN reviews ON properties.property_id = reviews.property_id
+ORDER BY properties.name;
 
--- 3. FULL OUTER JOIN simulation using UNION (SQLite doesn't support full outer join directly)
+-- 3. FULL OUTER JOIN simulation using UNION
 SELECT
     users.user_id,
     users.first_name,
@@ -96,4 +98,5 @@ SELECT
     bookings.booking_id,
     bookings.property_id
 FROM bookings
-LEFT JOIN users ON users.user_id = bookings.user_id;
+LEFT JOIN users ON users.user_id = bookings.user_id
+ORDER BY user_id;
