@@ -1,92 +1,99 @@
-CREATE SCHEMA `ecommerce`;
-
-CREATE TABLE `ecommerce`.`merchants` (
-  `id` int,
-  `country_code` int,
-  `merchant_name` varchar(255),
-  `created at` varchar(255),
-  `admin_id` int NOT NULL,
-  PRIMARY KEY (`id`, `country_code`)
+-- USERS TABLE
+CREATE TABLE users (
+    user_id TEXT PRIMARY KEY,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE
 );
 
-CREATE TABLE `ecommerce`.`order_items` (
-  `order_id` int,
-  `product_id` int,
-  `quantity` int DEFAULT 1,
-  PRIMARY KEY (`order_id`, `product_id`)
+-- PROPERTIES TABLE
+CREATE TABLE properties (
+    property_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT
 );
 
-CREATE TABLE `ecommerce`.`orders` (
-  `id` int PRIMARY KEY,
-  `user_id` int UNIQUE NOT NULL,
-  `status` varchar(255),
-  `created_at` varchar(255) COMMENT 'When order created'
+-- BOOKINGS TABLE
+CREATE TABLE bookings (
+    booking_id TEXT PRIMARY KEY,
+    user_id TEXT,
+    property_id TEXT,
+    start_date TEXT,
+    end_date TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (property_id) REFERENCES properties(property_id)
 );
 
-CREATE TABLE `ecommerce`.`products` (
-  `id` int PRIMARY KEY,
-  `name` varchar(255),
-  `merchant_id` int NOT NULL,
-  `price` int,
-  `status` ENUM ('out_of_stock', 'in_stock', 'running_low'),
-  `created_at` datetime DEFAULT (now())
+-- REVIEWS TABLE
+CREATE TABLE reviews (
+    review_id TEXT PRIMARY KEY,
+    property_id TEXT,
+    rating INTEGER,
+    comment TEXT,
+    FOREIGN KEY (property_id) REFERENCES properties(property_id)
 );
 
-CREATE TABLE `ecommerce`.`product_tags` (
-  `id` int PRIMARY KEY,
-  `name` varchar(255)
-);
+-- SAMPLE DATA
 
-CREATE TABLE `ecommerce`.`merchant_periods` (
-  `id` int PRIMARY KEY,
-  `merchant_id` int,
-  `country_code` int,
-  `start_date` datetime,
-  `end_date` datetime
-);
+-- Users
+INSERT INTO users (user_id, first_name, last_name, email) VALUES
+('u1', 'Alice', 'Anderson', 'alice@example.com'),
+('u2', 'Bob', 'Brown', 'bob@example.com'),
+('u3', 'Charlie', 'Clark', 'charlie@example.com');
 
-CREATE TABLE `users` (
-  `id` int PRIMARY KEY AUTO_INCREMENT,
-  `full_name` varchar(255),
-  `created_at` timestamp,
-  `country_code` int
-);
+-- Properties
+INSERT INTO properties (property_id, name, description) VALUES
+('p1', 'Cozy Cabin', 'A small cozy cabin in the woods'),
+('p2', 'Modern Apartment', 'Downtown high-rise apartment'),
+('p3', 'Beach House', 'House near the ocean');
 
-CREATE TABLE `countries` (
-  `code` int PRIMARY KEY,
-  `name` varchar(255),
-  `continent_name` varchar(255)
-);
+-- Bookings
+INSERT INTO bookings (booking_id, user_id, property_id, start_date, end_date) VALUES
+('b1', 'u1', 'p1', '2024-06-01', '2024-06-05'),
+('b2', 'u2', 'p2', '2024-06-10', '2024-06-15');
 
-CREATE INDEX `product_status` ON `ecommerce`.`products` (`merchant_id`, `status`);
+-- Reviews
+INSERT INTO reviews (review_id, property_id, rating, comment) VALUES
+('r1', 'p1', 5, 'Amazing stay!'),
+('r2', 'p2', 4, 'Very nice'),
+('r3', 'p2', 3, 'Okay experience');
 
-CREATE UNIQUE INDEX ``ecommerce`.products_index_1` ON `ecommerce`.`products` (`id`);
+-- 1. INNER JOIN: All bookings and the users who made them
+SELECT
+    bookings.booking_id,
+    users.first_name,
+    users.email,
+    bookings.property_id,
+    bookings.start_date,
+    bookings.end_date
+FROM bookings
+INNER JOIN users ON bookings.user_id = users.user_id;
 
-ALTER TABLE `ecommerce`.`merchants` ADD FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`);
+-- 2. LEFT JOIN: All properties and their reviews, including those with no reviews
+SELECT
+    properties.property_id,
+    properties.name,
+    reviews.review_id,
+    reviews.rating,
+    reviews.comment
+FROM properties
+LEFT JOIN reviews ON properties.property_id = reviews.property_id;
 
-ALTER TABLE `ecommerce`.`order_items` ADD FOREIGN KEY (`order_id`) REFERENCES `ecommerce`.`orders` (`id`);
+-- 3. FULL OUTER JOIN simulation using UNION (SQLite doesn't support full outer join directly)
+SELECT
+    users.user_id,
+    users.first_name,
+    bookings.booking_id,
+    bookings.property_id
+FROM users
+LEFT JOIN bookings ON users.user_id = bookings.user_id
 
-ALTER TABLE `ecommerce`.`order_items` ADD FOREIGN KEY (`product_id`) REFERENCES `ecommerce`.`products` (`id`);
+UNION
 
-ALTER TABLE `ecommerce`.`products` ADD FOREIGN KEY (`merchant_id`) REFERENCES `ecommerce`.`merchants` (`id`);
-
-CREATE TABLE `ecommerce`.`product_tags_products` (
-  `product_tags_id` int,
-  `products_id` int,
-  PRIMARY KEY (`product_tags_id`, `products_id`)
-);
-
-ALTER TABLE `ecommerce`.`product_tags_products` ADD FOREIGN KEY (`product_tags_id`) REFERENCES `ecommerce`.`product_tags` (`id`);
-
-ALTER TABLE `ecommerce`.`product_tags_products` ADD FOREIGN KEY (`products_id`) REFERENCES `ecommerce`.`products` (`id`);
-
-
-ALTER TABLE `ecommerce`.`merchant_periods` ADD FOREIGN KEY (`merchant_id`, `country_code`) REFERENCES `ecommerce`.`merchants` (`id`, `country_code`);
-
-ALTER TABLE `ecommerce`.`orders` ADD CONSTRAINT `user_orders` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
-
-ALTER TABLE `ecommerce`.`merchants` ADD FOREIGN KEY (`country_code`) REFERENCES `countries` (`code`);
-
-ALTER TABLE `users` ADD FOREIGN KEY (`country_code`) REFERENCES `countries` (`code`);
-
-ALTER TABLE `ecommerce`.`merchant_periods` ADD FOREIGN KEY (`country_code`) REFERENCES `countries` (`code`);
+SELECT
+    users.user_id,
+    users.first_name,
+    bookings.booking_id,
+    bookings.property_id
+FROM bookings
+LEFT JOIN users ON users.user_id = bookings.user_id;
